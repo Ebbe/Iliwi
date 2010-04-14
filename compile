@@ -1,0 +1,1 @@
+bitbake -b recipes/iliwi_0.0.1.bb -f -c fetch;bitbake -b recipes/iliwi_0.0.1.bb -c compile && scp tmp/work/armv4t-oe-linux-gnueabi/iliwi-0.0.1-r0/iliwi-0.0.1/src/iliwi root@192.168.0.202:.

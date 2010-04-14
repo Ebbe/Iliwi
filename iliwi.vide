@@ -1,0 +1,43 @@
+--- !Project
+path: /home/ebbe/Projects/valide/iliwi
+name: iliwi
+author: Esben Damgaard
+version: 0.1
+license: GPL-3.0
+builder: make
+builder-options: !NativeBuilderOptions
+  debug: false
+  thread: false
+  disable-assert: false
+  disable-checking: false
+  disable-non-null: false
+  save-temps: false
+  quiet: false
+  other: 
+executable-options:
+  program: 
+  arguments: 
+  working-dir: /home/ebbe/Projects/valide/iliwi
+  environment: []
+files:
+- path: COPYING
+- path: src/main.vala
+- path: configure.ac
+- path: Makefile.am
+- path: src/Makefile.am
+- path: src/libeflvala/ecore.vapi
+- path: src/libeflvala/edje.vapi
+- path: src/libeflvala/eina.vapi
+- path: src/libeflvala/elm.vapi
+- path: src/libeflvala/evas.vapi
+- path: src/libeflvala/ecore.deps
+- path: src/libeflvala/edje.deps
+- path: src/libeflvala/eina.deps
+- path: src/libeflvala/elm.deps
+- path: src/libeflvala/evas.deps
+- path: src/view_main.vala
+- path: src/wifi.vala
+- path: src/dbus_interfaces.vala
+- path: iliwi_0.0.1.bb
+packages: []
+vapi_dir: []
