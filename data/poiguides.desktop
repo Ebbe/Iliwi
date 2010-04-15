@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Iliwi
+Comment=Connect your Neo
+Exec=iliwi
+Icon=wifi
+Terminal=false
+Type=Application
+Categories=Utility;
+SingleInstance=true
+StartupNotify=true

@@ -53,8 +53,11 @@ namespace iliwi.View {
       }
     });
     
+    
+    //Ecore.MainLoop.begin();
     Elm.run();
     Elm.shutdown();
+    //Ecore.MainLoop.quit();
   }
   
   private void generate_window() {
