@@ -238,7 +238,7 @@ namespace iliwi {
           stream.puts( "  psk=\"%s\"\n".printf(network.password) );
         else { // WEP encryption
           stream.puts( "  key_mgmt=NONE\n" );
-          stream.puts( "  wep_key0=\"%s\"\n".printf(network.password) );
+          stream.puts( "  wep_key0=%s\n".printf(network.password) );
         }
       else
         stream.puts( "  key_mgmt=NONE\n" );
