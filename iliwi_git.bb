@@ -2,7 +2,7 @@ DESCRIPTION = "Iliwi connects you."
 HOMEPAGE = "http://github.com/Ebbe/Iliwi"
 LICENSE = "GPLv3"
 AUTHOR = "Esben Damgaard <ebbe@hvemder.dk>"
-DEPENDS = "dbus-glib elementary"
+DEPENDS = "dbus-glib libeflvala elementary"
 
 SRCREV_pn-${PN} = "${AUTOREV}"
 PV = "0.0.1+gitr${SRCPV}"

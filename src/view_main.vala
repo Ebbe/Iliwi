@@ -195,6 +195,15 @@ namespace iliwi.View {
       password_container.show();
       network_page.pack_end(password_container);
       gui_container2 += (owned) password_container;
+      
+      Toggle ascii_hex = new Toggle(win);
+      ascii_hex.label_set( "Password written in");
+      ascii_hex.states_labels_set("Ascii","Hex");
+      ascii_hex.smart_callback_add("changed", change_network_ascii_hex );
+      ascii_hex.state_set(network.password_in_ascii);
+      ascii_hex.show();
+      network_page.pack_end(ascii_hex);
+      gui_container2 += (owned) ascii_hex;
     }
     
     Toggle preferred = new Toggle(win);
@@ -234,6 +243,11 @@ namespace iliwi.View {
       if( network.preferred_network )
         wifi.preferred_network_password_change(network);
     }
+  }
+  private void change_network_ascii_hex(Evas.Object obj, void* event_info) {
+    bool current_state = ((Toggle)obj).state_get();
+    if( current_state!=network.password_in_ascii )
+      wifi.set_ascii_state(network,current_state);
   }
   private void change_network_preferred(Evas.Object obj, void* event_info) {
     save_password();

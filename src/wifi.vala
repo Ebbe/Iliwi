@@ -50,6 +50,10 @@ namespace iliwi {
       network.preferred_network = new_state;
       WifiThread.preferred_state_change(network);
     }
+    public void set_ascii_state(Network network,bool new_state) {
+      network.password_in_ascii = new_state;
+      WifiThread.preferred_ascii_password_state_change(network);
+    }
     
     public void preferred_network_password_change(Network network) {
       WifiThread.preferred_network_password_change(network);
@@ -73,12 +77,19 @@ namespace iliwi {
     CONNECTED
   }
   
+  struct PreferredNetwork {
+    string password;
+    bool password_in_ascii;
+    
+  }
+  
   public class Network {
     public string address;
     public string essid = "";
     public bool encryption = false;
     public bool wpa_encryption {get; private set; default=false;}
     public string password = "";
+    public bool password_in_ascii = true;
     public int strength = 0;
     public bool unsaved = true;
     public bool visible = false;
@@ -141,7 +152,7 @@ namespace iliwi {
     //static Manager manager;
     static Usage fso_usage;
     
-    static HashMap<string,string> preferred_networks;
+    static HashMap<string,PreferredNetwork?> preferred_networks;
     static HashMap<string,Network> networks;
     static ArrayList<Network> visible_networks;
     static NetworkStatus status;
@@ -211,15 +222,22 @@ namespace iliwi {
     }
     public static void preferred_state_change(Network network) {
       if(network.preferred_network) {
-        preferred_networks.set(network.address, network.password);
+        preferred_networks.set(network.address, PreferredNetwork() {
+          password = network.password,
+          password_in_ascii = network.password_in_ascii 
+        });
       } else {
         if( preferred_networks.has_key(network.address) )
           preferred_networks.unset(network.address);
       }
     }
+    public static void preferred_ascii_password_state_change(Network network) {
+      if(network.preferred_network)
+        preferred_networks.get(network.address).password_in_ascii = network.password_in_ascii;
+    }
     public static void preferred_network_password_change(Network network) {
       if(network.preferred_network)
-        preferred_networks.set(network.address, network.password);
+        preferred_networks.get(network.address).password = network.password;
     }
     public static void connect_to_network(Network network) {
       disconnect();
@@ -229,16 +247,19 @@ namespace iliwi {
       
       DirUtils.create_with_parents(Environment.get_user_config_dir() + "/iliwi",0755);
       string filename = Environment.get_user_config_dir() + "/iliwi/wpa_supplicant.conf";
+      string password = network.password;
+      if(network.password_in_ascii)
+        password = "\""+network.password+"\"";
       var stream = FileStream.open(filename, "w");
       stream.puts( "ctrl_interface=/var/run/wpa_supplicant\n" );
       stream.puts( "network={\n" );
       stream.puts( "  ssid=\"%s\"\n".printf(network.essid) );
       if( network.encryption )
         if( network.wpa_encryption )
-          stream.puts( "  psk=\"%s\"\n".printf(network.password) );
+          stream.puts( "  psk=%s\n".printf(password) );
         else { // WEP encryption
           stream.puts( "  key_mgmt=NONE\n" );
-          stream.puts( "  wep_key0=%s\n".printf(network.password) );
+          stream.puts( "  wep_key0=%s\n".printf(password) );
         }
       else
         stream.puts( "  key_mgmt=NONE\n" );
@@ -317,15 +338,19 @@ namespace iliwi {
       string filename = Environment.get_user_config_dir() + "/iliwi/preferred_networks";
       var in_stream = FileStream.open(filename, "r");
       string line;
-      preferred_networks = new HashMap<string,string>(str_hash,str_equal);
+      preferred_networks = new HashMap<string,PreferredNetwork?>(str_hash,str_equal);
       
       try {
-        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"$""");
+        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"(h)?$""");
         MatchInfo result;
         
         while( (line=in_stream.read_line())!=null ) {
           if( regex_line.match(line,0,out result) ) { // Parse option
-            preferred_networks.set(result.fetch(1), result.fetch(2));
+            
+            preferred_networks.set(result.fetch(1), PreferredNetwork() {
+              password = result.fetch(2),
+              password_in_ascii = (result.fetch(3)==null) 
+            });
           }
         }
       } catch (Error e) {
@@ -337,8 +362,11 @@ namespace iliwi {
       DirUtils.create_with_parents(Environment.get_user_config_dir() + "/iliwi",0755);
       string filename = Environment.get_user_config_dir() + "/iliwi/preferred_networks";
       var stream = FileStream.open(filename, "w");
-      foreach(string address in preferred_networks.keys)
-        stream.puts( "%s \"%s\"\n".printf(address,preferred_networks.get(address)) );
+      foreach(string address in preferred_networks.keys) {
+        PreferredNetwork network = preferred_networks.get(address);
+        string password_type = network.password_in_ascii ? "" : "h";
+        stream.puts( "%s \"%s\"%s\n".printf(address,network.password,password_type) );
+      }
     }
     
     private static void scan() {
@@ -407,8 +435,10 @@ namespace iliwi {
     //TODO: Is this obsolete?
     private static void connect_to_suggestion(Network network) {
       // Get password
-      if( preferred_networks.has_key(network.address) )
-        network.password = preferred_networks.get(network.address);
+      if( preferred_networks.has_key(network.address) ) {
+        network.password = preferred_networks.get(network.address).password;
+        network.password_in_ascii = preferred_networks.get(network.address).password_in_ascii;
+      }
       if( connection_suggestion==null )
         connection_suggestion = network;
       else if( connection_suggestion.strength < network.strength )
