@@ -127,6 +127,7 @@ namespace iliwi.View {
     wifilist.clear();
     items_in_list = false;
     unowned GenlistItem listitem_tmp;
+    GenlistItem listitem_tmp2;
     foreach(Network network in wifi.get_visible_networks()) {
       // Find place (sorted by preferred > strength
       if( items_in_list == false )
@@ -143,7 +144,8 @@ namespace iliwi.View {
             found_place = true;
             network.listitem = wifilist.item_insert_before( itc, (void*)network, listitem_tmp, Elm.GenlistItemFlags.NONE, item_select );
           } else { // Couldn't find a place to put it
-            listitem_tmp = listitem_tmp.next_get();
+            listitem_tmp2 = listitem_tmp.next_get();
+            listitem_tmp = listitem_tmp2;
             if( listitem_tmp==null ) {
               found_place = true;
               network.listitem = wifilist.item_append( itc, (void*)network, null, Elm.GenlistItemFlags.NONE, item_select );

@@ -20,24 +20,24 @@ executable-options:
   working-dir: /home/ebbe/Projects/valide/iliwi
   environment: []
 files:
-- path: COPYING
-- path: src/main.vala
-- path: configure.ac
-- path: Makefile.am
-- path: src/Makefile.am
-- path: src/libeflvala/ecore.vapi
-- path: src/libeflvala/edje.vapi
-- path: src/libeflvala/eina.vapi
-- path: src/libeflvala/elm.vapi
-- path: src/libeflvala/evas.vapi
-- path: src/libeflvala/ecore.deps
-- path: src/libeflvala/edje.deps
-- path: src/libeflvala/eina.deps
-- path: src/libeflvala/elm.deps
-- path: src/libeflvala/evas.deps
-- path: src/view_main.vala
-- path: src/wifi.vala
 - path: src/dbus_interfaces.vala
-- path: iliwi_0.0.1.bb
+- path: src/wifi.vala
+- path: src/view_main.vala
+- path: src/libeflvala/evas.deps
+- path: src/libeflvala/elm.deps
+- path: src/libeflvala/eina.deps
+- path: src/libeflvala/edje.deps
+- path: src/libeflvala/ecore.deps
+- path: src/libeflvala/evas.vapi
+- path: src/libeflvala/elm.vapi
+- path: src/libeflvala/eina.vapi
+- path: src/libeflvala/edje.vapi
+- path: src/libeflvala/ecore.vapi
+- path: src/Makefile.am
+- path: Makefile.am
+- path: configure.ac
+- path: src/main.vala
+- path: COPYING
+- path: iliwi_git.bb
 packages: []
 vapi_dir: []

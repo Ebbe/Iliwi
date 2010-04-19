@@ -4,7 +4,7 @@ LICENSE = "GPLv3"
 AUTHOR = "Esben Damgaard <ebbe@hvemder.dk>"
 DEPENDS = "dbus-glib elementary"
 
-SRCREV = "adae747061e8d885bbe9084814dad169fb00fae2"
+SRCREV_pn-${PN} = "${AUTOREV}"
 PV = "0.0.1+gitr${SRCPV}"
 
 SRC_URI = "git://github.com/Ebbe/Iliwi.git;protocol=http;branch=master"
