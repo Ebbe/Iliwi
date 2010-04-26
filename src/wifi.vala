@@ -291,7 +291,7 @@ namespace iliwi {
     private static void run_dhcp() {
       try {
         string udhcpc_result = "";
-        Process.spawn_sync(null, {Environment.find_program_in_path("udhcpc"),"-i",wireless_interface,"-n"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out udhcpc_result);
+        Process.spawn_sync(null, {Environment.find_program_in_path("udhcpc"),"-i",wireless_interface,"-n","-R"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out udhcpc_result);
         Regex regex_ip = new Regex("""\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}""");
         MatchInfo result;
         if( regex_ip.match(udhcpc_result,0,out result) ) { // We got an ip
