@@ -268,7 +268,7 @@ namespace iliwi {
       stream = null;
       
       try {
-        string[] supplicant_args = {"/usr/sbin/wpa_supplicant","-i", wireless_interface, "-c", filename,"-B"};
+        string[] supplicant_args = {Environment.find_program_in_path("wpa_supplicant"),"-i", wireless_interface, "-c", filename,"-B"};
         Process.spawn_sync(null, supplicant_args, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null);
       } catch(GLib.SpawnError e) {
         debug("Couldn't start spawn!");
@@ -278,7 +278,7 @@ namespace iliwi {
     private static void disconnect() {
       status = NetworkStatus.UNCONNECTED;
       try {
-        Process.spawn_sync(null, {"/usr/bin/killall","wpa_supplicant"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null);
+        Process.spawn_sync(null, {Environment.find_program_in_path("killall"),"wpa_supplicant"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null);
         FileUtils.remove("/var/run/wpa_supplicant/eth0");
       } catch(GLib.SpawnError e) {
       }
@@ -291,7 +291,7 @@ namespace iliwi {
     private static void run_dhcp() {
       try {
         string udhcpc_result = "";
-        Process.spawn_sync(null, {"/sbin/udhcpc","-i",wireless_interface,"-n"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out udhcpc_result);
+        Process.spawn_sync(null, {Environment.find_program_in_path("udhcpc"),"-i",wireless_interface,"-n"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out udhcpc_result);
         Regex regex_ip = new Regex("""\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}""");
         MatchInfo result;
         if( regex_ip.match(udhcpc_result,0,out result) ) { // We got an ip
@@ -374,7 +374,7 @@ namespace iliwi {
       seconds_since_last_scan = 0;
       string result = "";
       try {
-        Process.spawn_sync(null, {"/sbin/iwlist","scan"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out result);
+        Process.spawn_sync(null, {Environment.find_program_in_path("iwlist"),"scan"}, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null, out result);
         parse_iwlist_networks(result);
       } catch(GLib.SpawnError e) {
         debug("Couldn't start spawn!");
