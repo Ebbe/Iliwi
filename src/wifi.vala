@@ -58,7 +58,15 @@ namespace iliwi {
     public void preferred_network_password_change(Network network) {
       WifiThread.preferred_network_password_change(network);
     }
-    
+
+	 public void preferred_network_username_change(Network network) {
+		 WifiThread.preferred_network_username_change(network);
+	 }
+
+	 public void preferred_network_certificate_change(Network network) {
+		 WifiThread.preferred_network_certificate_change(network);
+	 }
+
     // Callback from thread
     public void set_new_status(string new_status) {
       //debug(new_status);
@@ -80,15 +88,20 @@ namespace iliwi {
   struct PreferredNetwork {
     string password;
     bool password_in_ascii;
-    
+	 string username;
+	 string certificate;
   }
   
   public class Network {
     public string address;
     public string essid = "";
     public bool encryption = false;
+	 public bool authentication = false;
+	 public bool server_cert_is_set = false;
     public bool wpa_encryption {get; private set; default=false;}
     public string password = "";
+	 public string username = "";
+	 public string certificate = "";
     public bool password_in_ascii = true;
     public int strength = 0;
     public bool unsaved = true;
@@ -100,23 +113,25 @@ namespace iliwi {
     public bool valid_network() {
       return (address!=null);
     }
-    public string pretty_string() {
-      string enc_str = "";
-      if(encryption)
-        enc_str = "(enc)";
-      string status_str = "";
-      if(status==NetworkStatus.CONNECTING)
-        status_str = "CONNECTING ";
-      else if(status==NetworkStatus.CONNECTED)
-        status_str = "CONNECTED ";
-      return "%s%i%% %s %s".printf(
-        status_str, strength, enc_str, essid
-      );
-      /*return "Address:%s Essid:%s Encryption:%s Strength:%i".printf(
+	 public string pretty_string() {
+	   string enc_str = "";
+		if(encryption && (!authentication))
+				  enc_str = "(enc)";
+		else if (encryption && authentication)
+		  enc_str = "(enc+auth)";
+		string status_str = "";
+		if (status == NetworkStatus.CONNECTING)
+		  status_str = "CONNECTING ";
+		else if (status == NetworkStatus.CONNECTED)
+		  status_str = "CONNECTED ";
+		return "%s%i%% %s %s".printf(
+		  status_str, strength, enc_str, essid
+		);
+		/*return "Address:%s Essid:%s Encryption:%s Strength:%i".printf(
         address, essid, enc_str, strength
-      );*/
-    }
-    
+		);*/
+	 }
+
     public string get_title() {
       return essid;
     }
@@ -168,6 +183,7 @@ namespace iliwi {
     static Regex line_regex_strength;
     static Regex line_regex_interface;
     static Regex line_regex_wpa_enc;
+	 static Regex line_regex_wpa_enc_auth;
     
     static int seconds_since_last_scan;
     
@@ -224,7 +240,9 @@ namespace iliwi {
       if(network.preferred_network) {
         preferred_networks.set(network.address, PreferredNetwork() {
           password = network.password,
-          password_in_ascii = network.password_in_ascii 
+			 password_in_ascii = network.password_in_ascii, 
+			 username = network.username,
+			 certificate = network.certificate
         });
       } else {
         if( preferred_networks.has_key(network.address) )
@@ -239,6 +257,14 @@ namespace iliwi {
       if(network.preferred_network)
         preferred_networks.get(network.address).password = network.password;
     }
+	 public static void preferred_network_username_change(Network network) {
+		if(network.preferred_network)
+		  preferred_networks.get(network.address).username = network.username;
+	 }
+	 public static void preferred_network_certificate_change(Network network) {
+		if(network.preferred_network)
+		  preferred_networks.get(network.address).certificate = network.certificate;
+	 }
     public static void connect_to_network(Network network) {
       disconnect();
       wifi.set_new_status("connecting..");
@@ -254,15 +280,27 @@ namespace iliwi {
       stream.puts( "ctrl_interface=/var/run/wpa_supplicant\n" );
       stream.puts( "network={\n" );
       stream.puts( "  ssid=\"%s\"\n".printf(network.essid) );
-      if( network.encryption )
-        if( network.wpa_encryption )
-          stream.puts( "  psk=%s\n".printf(password) );
-        else { // WEP encryption
-          stream.puts( "  key_mgmt=NONE\n" );
-          stream.puts( "  wep_key0=%s\n".printf(password) );
-        }
-      else
-        stream.puts( "  key_mgmt=NONE\n" );
+		if( network.encryption )
+		  if ( network.wpa_encryption && (!network.authentication) ) // WPA-Personal
+		    stream.puts("  psk=%s\n".printf(network.password));
+		  else if ( network.wpa_encryption && network.authentication ) { // WPA-Enterprise
+		    stream.puts("  password=\"%s\"\n".printf(network.password));
+			 stream.puts("  key_mgmt=WPA-EAP\n");
+			 stream.puts("  pairwise=CCMP TKIP\n");
+			 stream.puts("  group=CCMP TKIP\n");
+			 stream.puts("  eap=PEAP\n");
+			 if ( network.server_cert_is_set )
+			   stream.puts("  ca_cert=\"%s\"\n".printf(network.certificate));
+			 stream.puts("  identity=\"%s\"\n".printf(network.username));
+			 stream.puts("  phase1=\"peaplabel=0\"\n");
+			 stream.puts("  phase2=\"auth=MSCHAPV2\"\n");
+		  }
+		  else { // WEP encryption                                                                                                                           
+		    stream.puts("  key_mgmt=NONE\n");
+			 stream.puts("  wep_key0=%s\n".printf(network.password));
+		  }
+		else
+			stream.puts( "  key_mgmt=NONE\n" ); // No encryption
       stream.puts( "}\n" );
       stream.flush();
       stream = null;
@@ -322,6 +360,7 @@ namespace iliwi {
         line_regex_strength = new Regex("""^\s+Quality=(\d+)/(\d+) """);
         line_regex_interface = new Regex("""^(\w+\d+)\s*Scan completed :$""");
         line_regex_wpa_enc = new Regex("""^\s+Extra:(rsn|wpa)_ie=""");
+		  line_regex_wpa_enc_auth = new Regex("""^\s+Extra:wpa_ie=dd160050f20101000050f20201000050f20201000050f201$""");
       } catch(Error e) {
         debug("Regex error!");
       }
@@ -341,7 +380,7 @@ namespace iliwi {
       preferred_networks = new HashMap<string,PreferredNetwork?>(str_hash,str_equal);
       
       try {
-        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"(h)?$""");
+        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"(h)? \"(.*)\" \"(.*)\"$""");
         MatchInfo result;
         
         while( (line=in_stream.read_line())!=null ) {
@@ -349,7 +388,9 @@ namespace iliwi {
             
             preferred_networks.set(result.fetch(1), PreferredNetwork() {
               password = result.fetch(2),
-              password_in_ascii = (result.fetch(3)==null) 
+				  password_in_ascii = (result.fetch(3)==null), 
+				  username = result.fetch(4),
+				  certificate = result.fetch(5)
             });
           }
         }
@@ -365,10 +406,10 @@ namespace iliwi {
       foreach(string address in preferred_networks.keys) {
         PreferredNetwork network = preferred_networks.get(address);
         string password_type = network.password_in_ascii ? "" : "h";
-        stream.puts( "%s \"%s\"%s\n".printf(address,network.password,password_type) );
+        stream.puts( "%s \"%s\"%s \"%s\" \"%s\"\n".printf(address,network.password,password_type,network.username,network.certificate) );
       }
     }
-    
+
     private static void scan() {
       wifi.set_new_status("scanning..");
       seconds_since_last_scan = 0;
@@ -396,6 +437,10 @@ namespace iliwi {
             current_network.essid = result.fetch(1);
           else if( line_regex_encryption.match(line,0,out result) )
             current_network.encryption = true;
+			 else if (line_regex_wpa_enc_auth.match(line,0,out result)) {
+				 current_network.authentication = true;
+				 current_network.set_encyption_to_wpa();
+			 }
           else if( line_regex_wpa_enc.match(line,0,out result) )
             current_network.set_encyption_to_wpa();
           else if( line_regex_strength.match(line,0,out result) ) {
@@ -438,6 +483,8 @@ namespace iliwi {
       if( preferred_networks.has_key(network.address) ) {
         network.password = preferred_networks.get(network.address).password;
         network.password_in_ascii = preferred_networks.get(network.address).password_in_ascii;
+		  network.username = preferred_networks.get(network.address).username;
+		  network.certificate = preferred_networks.get(network.address).certificate;
       }
       if( connection_suggestion==null )
         connection_suggestion = network;
