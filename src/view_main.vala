@@ -162,6 +162,7 @@ namespace iliwi.View {
   
   Elm.Object[] gui_container2;
   Entry password;
+  Entry username;
   unowned Network network;
   //Box network_page;
   private void show_network(Network _network) {
@@ -196,14 +197,31 @@ namespace iliwi.View {
       network_page.pack_end(password_container);
       gui_container2 += (owned) password_container;
       
-      Toggle ascii_hex = new Toggle(win);
-      ascii_hex.label_set( "Password written in");
-      ascii_hex.states_labels_set("Ascii","Hex");
-      ascii_hex.smart_callback_add("changed", change_network_ascii_hex );
-      ascii_hex.state_set(network.password_in_ascii);
-      ascii_hex.show();
-      network_page.pack_end(ascii_hex);
-      gui_container2 += (owned) ascii_hex;
+		if(!network.authentication) {
+        Toggle ascii_hex = new Toggle(win);
+        ascii_hex.label_set( "Password written in");
+        ascii_hex.states_labels_set("Ascii","Hex");
+        ascii_hex.smart_callback_add("changed", change_network_ascii_hex );
+        ascii_hex.state_set(network.password_in_ascii);
+        ascii_hex.show();
+        network_page.pack_end(ascii_hex);
+        gui_container2 += (owned) ascii_hex;
+		}
+
+		else {
+		  Frame username_container = new Frame(win);
+		  username_container.label_set("Username");
+		  username_container.size_hint_weight_set(1, -1);
+		  username_container.size_hint_align_set(-1, -1);
+		  username = new Entry(win);
+		  username.single_line_set(true);
+		  username.entry_insert(network.username);
+		  username.show();
+		  username_container.content_set(username);
+		  username_container.show();
+		  network_page.pack_end(username_container);
+		  gui_container2 += (owned) username_container;
+		}
     }
     
     Toggle preferred = new Toggle(win);
@@ -238,11 +256,16 @@ namespace iliwi.View {
     gui_container2 += (owned) network_page;
   }
   private void save_password() {
-    if( network.encryption) {
+    if (network.encryption) {
       network.password = password.entry_get();
-      if( network.preferred_network )
+		if (network.authentication)
+			network.username = username.entry_get();
+      if (network.preferred_network) {
         wifi.preferred_network_password_change(network);
-    }
+		  wifi.preferred_network_username_change(network);
+		  wifi.preferred_network_certificate_change(network);
+		}
+	 }
   }
   private void change_network_ascii_hex(Evas.Object obj, void* event_info) {
     bool current_state = ((Toggle)obj).state_get();
@@ -266,6 +289,7 @@ namespace iliwi.View {
     pager.content_pop();
     gui_container2 = {};
     password = null;
+	 username = null;
   }
   
   
