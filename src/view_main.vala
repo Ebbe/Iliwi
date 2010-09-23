@@ -174,7 +174,7 @@ namespace iliwi.View {
     network_page.size_hint_weight_set(1, 1);
     network_page.size_hint_align_set(-1, -1);
     network_page.show();
-    
+
     Label title = new Label(win);
     title.size_hint_weight_set(1,1);
     title.scale_set(2);
@@ -183,6 +183,21 @@ namespace iliwi.View {
     network_page.pack_end(title);
     gui_container2 += (owned) title;
     
+    if(network.authentication) {
+      Frame username_container = new Frame(win);
+      username_container.label_set("Username");
+      username_container.size_hint_weight_set(1, -1);
+      username_container.size_hint_align_set(-1, -1);
+      username = new Entry(win);
+      username.single_line_set(true);
+      username.entry_insert(network.username);
+      username.show();
+      username_container.content_set(username);
+      username_container.show();
+      network_page.pack_end(username_container);
+      gui_container2 += (owned) username_container;
+    }
+
     if(network.encryption) {
       Frame password_container = new Frame(win);
       password_container.label_set("Password");
@@ -197,7 +212,7 @@ namespace iliwi.View {
       network_page.pack_end(password_container);
       gui_container2 += (owned) password_container;
       
-		if(!network.authentication) {
+      if(!network.authentication) {
         Toggle ascii_hex = new Toggle(win);
         ascii_hex.label_set( "Password written in");
         ascii_hex.states_labels_set("Ascii","Hex");
@@ -206,22 +221,7 @@ namespace iliwi.View {
         ascii_hex.show();
         network_page.pack_end(ascii_hex);
         gui_container2 += (owned) ascii_hex;
-		}
-
-		else {
-		  Frame username_container = new Frame(win);
-		  username_container.label_set("Username");
-		  username_container.size_hint_weight_set(1, -1);
-		  username_container.size_hint_align_set(-1, -1);
-		  username = new Entry(win);
-		  username.single_line_set(true);
-		  username.entry_insert(network.username);
-		  username.show();
-		  username_container.content_set(username);
-		  username_container.show();
-		  network_page.pack_end(username_container);
-		  gui_container2 += (owned) username_container;
-		}
+      }
     }
     
     Toggle preferred = new Toggle(win);
@@ -258,14 +258,14 @@ namespace iliwi.View {
   private void save_password() {
     if (network.encryption) {
       network.password = password.entry_get();
-		if (network.authentication)
-			network.username = username.entry_get();
+      if (network.authentication)
+        network.username = username.entry_get();
       if (network.preferred_network) {
         wifi.preferred_network_password_change(network);
-		  wifi.preferred_network_username_change(network);
-		  wifi.preferred_network_certificate_change(network);
-		}
-	 }
+        wifi.preferred_network_username_change(network);
+        wifi.preferred_network_certificate_change(network);
+      }
+    }
   }
   private void change_network_ascii_hex(Evas.Object obj, void* event_info) {
     bool current_state = ((Toggle)obj).state_get();
@@ -289,7 +289,7 @@ namespace iliwi.View {
     pager.content_pop();
     gui_container2 = {};
     password = null;
-	 username = null;
+    username = null;
   }
   
   
