@@ -15,6 +15,7 @@
 */
 
 using Elm;
+using Gee;
 
 namespace iliwi.View {
   Win win;
@@ -23,10 +24,14 @@ namespace iliwi.View {
   Box frontpage;
   Label status;
   Button button;
+  Label cert_status;
   
   Genlist wifilist;
+  Genlist certlist;
   GenlistItemClass itc;
+  GenlistItemClass itc2;
   bool items_in_list;
+  ArrayList<Certificate> ls;
   
   void show_main_window(string[] args) {
     Elm.init(args);
@@ -40,6 +45,12 @@ namespace iliwi.View {
     itc.func.icon_get = null;
     itc.func.state_get = null;
     itc.func.del = null;
+
+    itc2.item_style = "default";
+    itc2.func.label_get = certlist_get_label;
+    itc2.func.icon_get = null;
+    itc2.func.state_get = null;
+    itc2.func.del = null;
     
     generate_window();
     
@@ -127,7 +138,7 @@ namespace iliwi.View {
     wifilist.clear();
     items_in_list = false;
     unowned GenlistItem listitem_tmp;
-    GenlistItem listitem_tmp2;
+    unowned GenlistItem listitem_tmp2;
     foreach(Network network in wifi.get_visible_networks()) {
       // Find place (sorted by preferred > strength
       if( items_in_list == false )
@@ -158,7 +169,7 @@ namespace iliwi.View {
       button.disabled_set(true);
     }
   }
-  
+
   
   Elm.Object[] gui_container2;
   Entry password;
@@ -168,21 +179,46 @@ namespace iliwi.View {
   private void show_network(Network _network) {
     gui_container2 = {};
     network = _network; 
-    
+
+    Box outer_box = new Box(win);
+    outer_box.homogenous_set(false);
+    outer_box.size_hint_weight_set(1, 1);
+    outer_box.size_hint_align_set(-1, -1);
+    outer_box.show();
+
+    Scroller sc = new Scroller(win);
+    sc.bounce_set(false, false);
+    sc.policy_set(Elm.ScrollerPolicy.OFF, Elm.ScrollerPolicy.AUTO);
+    sc.size_hint_weight_set(1, 1);
+    sc.size_hint_align_set(-1, -1);
+    outer_box.pack_end(sc);
+    sc.show();
+
     Box network_page = new Box(win);
     network_page.homogenous_set(false);
     network_page.size_hint_weight_set(1, 1);
     network_page.size_hint_align_set(-1, -1);
+    sc.content_set(network_page);
     network_page.show();
 
+    Frame title_padding = new Frame(win);
+    title_padding.style_set("pad_small");
+    title_padding.size_hint_weight_set(1, 1);
+    title_padding.size_hint_align_set(0.5, 0.5);
+    title_padding.show();
+
     Label title = new Label(win);
-    title.size_hint_weight_set(1,1);
+    title.size_hint_weight_set(1, 1);
+    title.size_hint_align_set(0.5, 0.5);
     title.scale_set(2);
     title.label_set(network.get_title());
     title.show();
-    network_page.pack_end(title);
+    title_padding.content_set(title);
     gui_container2 += (owned) title;
-    
+
+    network_page.pack_end(title_padding);
+    gui_container2 += (owned) title_padding;
+
     if(network.authentication) {
       Frame username_container = new Frame(win);
       username_container.label_set("Username");
@@ -223,7 +259,42 @@ namespace iliwi.View {
         gui_container2 += (owned) ascii_hex;
       }
     }
-    
+
+    if(network.authentication) {
+      Frame certificate_container = new Frame(win);
+      certificate_container.label_set("Server Certificate");
+      certificate_container.size_hint_weight_set(1, -1);
+      certificate_container.size_hint_align_set(-1, -1);
+      certificate_container.show();
+ 
+      Box cert_box = new Box(win);
+      cert_box.homogenous_set(false);
+      cert_box.size_hint_weight_set(1,-1);
+      cert_box.size_hint_align_set(-1, -1);
+      cert_box.show();
+      certificate_container.content_set(cert_box);
+
+      cert_status = new Label(win);
+      cert_status.size_hint_weight_set(1, 1);
+      cert_status.size_hint_align_set(-1, -1);
+      certlist_label_set();
+      cert_status.show();
+      cert_box.pack_end(cert_status);
+
+      Button cert_button = new Button(win);
+      cert_button.size_hint_weight_set(1,-1);
+      cert_button.size_hint_align_set(-1,-1);
+      cert_button.label_set("Change");
+      cert_button.show();
+      cert_box.pack_end(cert_button);
+      cert_button.smart_callback_add("clicked", show_cert_chooser);
+      gui_container2 += (owned) cert_button;
+
+      network_page.pack_end(certificate_container);
+      gui_container2 += (owned) cert_box;
+      gui_container2 += (owned) certificate_container;
+    }
+
     Toggle preferred = new Toggle(win);
     preferred.smart_callback_add("changed", change_network_preferred );
     preferred.label_set( "Preferred network");
@@ -251,10 +322,78 @@ namespace iliwi.View {
     button.smart_callback_add("clicked", back_to_list );
     network_page.pack_end(button);
     gui_container2 += (owned) button;
-    
-    pager.content_push(network_page);
+
+    pager.content_push(outer_box);
+    gui_container2 += (owned) outer_box;
+    gui_container2 += (owned) sc;
     gui_container2 += (owned) network_page;
   }
+
+  public class Certificate : GLib.Object, Gee.Comparable<Certificate> {
+    public string cert = "";
+    public string cert_dir = "";
+    public unowned GenlistItem listitem = null;
+
+    public Certificate (string _cert, string _cert_dir) {
+      cert = _cert;
+      cert_dir = _cert_dir;
+    }
+
+    public static string trim_cert_name(string full_cert_name) {
+      string trimmed_name = full_cert_name.substring(0, (full_cert_name.length - 4));
+      Regex line_regex_cert_name;
+      try {
+        line_regex_cert_name = new Regex("(_)");
+        trimmed_name = line_regex_cert_name.replace(trimmed_name, -1, 0, " ");
+      }
+      catch (Error e) {
+        debug("Regex error: e.message");
+      }
+      return trimmed_name;
+    }
+
+    public int compare_to(Certificate other) {
+      if (this.cert.up() < other.cert.up()) return -1;
+      if (this.cert.up() > other.cert.up()) return 1;
+      return 0;
+    }
+  }
+
+  Elm.Object[] gui_container3;
+  // Certificate chooser page
+  private void show_cert_chooser() {
+    gui_container3 = {};
+    ls = new ArrayList<Certificate>();
+
+    Box cert_chooser_page = new Box(win);
+    cert_chooser_page.size_hint_weight_set(1, 1);
+    cert_chooser_page.size_hint_align_set(-1, -1);
+    cert_chooser_page.homogenous_set(false);
+    cert_chooser_page.show();
+    
+    certlist = new Genlist(win);
+    certlist.size_hint_weight_set(1, 1);
+    certlist.size_hint_align_set(-1, -1);
+    list_cert_dir();
+    foreach (Certificate cert in ls) {
+      cert.listitem = certlist.item_append(itc2, (void*)cert, null, Elm.GenlistItemFlags.NONE, cert_select);
+    }
+    certlist.show();
+    cert_chooser_page.pack_end(certlist);
+
+    Button back_button = new Button(win);
+    back_button.size_hint_weight_set(1,-1);
+    back_button.size_hint_align_set(-1,-1);
+    back_button.label_set("Back");
+    back_button.show();
+    back_button.smart_callback_add("clicked", back_to_net_definition);
+    cert_chooser_page.pack_end(back_button);
+    gui_container3 += (owned) back_button;
+
+    pager.content_push(cert_chooser_page);
+    gui_container3 += (owned) cert_chooser_page;
+  }
+
   private void save_password() {
     if (network.encryption) {
       network.password = password.entry_get();
@@ -291,7 +430,40 @@ namespace iliwi.View {
     password = null;
     username = null;
   }
-  
+  private void back_to_net_definition() {
+    certlist_label_set();
+    pager.content_pop();
+    gui_container3 = {};
+  }
+  private void certlist_label_set() {
+      if (network.cert != "") {
+         cert_status.label_set(Certificate.trim_cert_name(network.cert));
+      }
+      else {
+         cert_status.label_set("Not Set - Password recipient unverified!");
+      }
+  }
+  public void list_cert_dir() {
+    ls.clear();
+    string path = "/etc/ssl/certs/";
+    MatchInfo result;
+    try {
+      Regex line_regex_cert_name = new Regex("""^(.+?\.pem)$""");
+      var directory = File.new_for_path(path);
+      var enumerator = directory.enumerate_children(FILE_ATTRIBUTE_STANDARD_NAME, 0, null);
+      FileInfo file_info;
+      while ((file_info = enumerator.next_file(null)) != null) {
+        if (line_regex_cert_name.match(file_info.get_name(), 0, out result)) {
+          ls.add(new Certificate(result.fetch(1), path));
+        }
+      }
+    }
+    catch (Error e) {
+      debug("Error: e.message");
+    }
+    ls.sort();
+  }
+
   
   // Genlist stuff
   private static string genlist_get_label( Elm.Object obj, string part ) {
@@ -301,10 +473,21 @@ namespace iliwi.View {
       return "elm.text.sub";*/
     return ((Network)obj).pretty_string();
   }
+  private static string certlist_get_label(Elm.Object obj, string part) {
+    string cert = ((Certificate)obj).cert;
+    return Certificate.trim_cert_name(cert);
+  }
   public void item_select( Evas.Object obj, void* event_info) {
     Network clicked = (Network) ((GenlistItem)event_info).data_get();
     show_network(clicked);
     //debug( "clicked %s", clicked.pretty_string() );
   }
+  public void cert_select( Evas.Object obj, void* event_info) {
+    Certificate selected_cert = (Certificate) ((GenlistItem)event_info).data_get();
+    network.cert = selected_cert.cert;
+    network.cert_dir = selected_cert.cert_dir;
+    back_to_net_definition();
+  }
+
 
 }
