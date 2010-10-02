@@ -89,7 +89,8 @@ namespace iliwi {
     string password;
     bool password_in_ascii;
     string username;
-    string certificate;
+    string cert;
+    string cert_dir;
   }
   
   public class Network {
@@ -101,7 +102,8 @@ namespace iliwi {
     public bool wpa_encryption {get; private set; default=false;}
     public string password = "";
     public string username = "";
-    public string certificate = "";
+    public string cert = "";
+    public string cert_dir = "";
     public bool password_in_ascii = true;
     public int strength = 0;
     public bool unsaved = true;
@@ -242,7 +244,8 @@ namespace iliwi {
           password = network.password,
           password_in_ascii = network.password_in_ascii, 
           username = network.username,
-          certificate = network.certificate
+          cert = network.cert,
+          cert_dir = network.cert_dir
         });
       } else {
         if( preferred_networks.has_key(network.address) )
@@ -262,8 +265,10 @@ namespace iliwi {
         preferred_networks.get(network.address).username = network.username;
     }
     public static void preferred_network_certificate_change(Network network) {
-      if(network.preferred_network)
-        preferred_networks.get(network.address).certificate = network.certificate;
+      if(network.preferred_network) {
+        preferred_networks.get(network.address).cert = network.cert;
+        preferred_networks.get(network.address).cert_dir = network.cert_dir;
+      }
     }
     public static void connect_to_network(Network network) {
       disconnect();
@@ -289,8 +294,8 @@ namespace iliwi {
         stream.puts("  pairwise=CCMP TKIP\n");
         stream.puts("  group=CCMP TKIP\n");
         stream.puts("  eap=PEAP\n");
-        if ( network.server_cert_is_set )
-          stream.puts("  ca_cert=\"%s\"\n".printf(network.certificate));
+        if ( network.cert != "" )
+          stream.puts("  ca_cert=\"%s%s\"\n".printf(network.cert_dir, network.cert));
         stream.puts("  identity=\"%s\"\n".printf(network.username));
         stream.puts("  phase1=\"peaplabel=0\"\n");
         stream.puts("  phase2=\"auth=MSCHAPV2\"\n");
@@ -380,7 +385,7 @@ namespace iliwi {
       preferred_networks = new HashMap<string,PreferredNetwork?>(str_hash,str_equal);
       
       try {
-        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"(h)? \"(.*)\" \"(.*)\"$""");
+        Regex regex_line = new Regex("""^([0-9A-Z:]{17}) \"(.*)\"(h)? \"(.*)\" \"(.*)\" \"(.*)\"$""");
         MatchInfo result;
         
         while( (line=in_stream.read_line())!=null ) {
@@ -390,7 +395,8 @@ namespace iliwi {
               password = result.fetch(2),
               password_in_ascii = (result.fetch(3)==null), 
               username = result.fetch(4),
-              certificate = result.fetch(5)
+              cert = result.fetch(5),
+              cert_dir = result.fetch(6)
             });
           }
         }
@@ -406,7 +412,7 @@ namespace iliwi {
       foreach(string address in preferred_networks.keys) {
         PreferredNetwork network = preferred_networks.get(address);
         string password_type = network.password_in_ascii ? "" : "h";
-        stream.puts( "%s \"%s\"%s \"%s\" \"%s\"\n".printf(address,network.password,password_type,network.username,network.certificate) );
+        stream.puts( "%s \"%s\"%s \"%s\" \"%s\" \"%s\"\n".printf(address,network.password,password_type,network.username,network.cert,network.cert_dir) );
       }
     }
 
@@ -484,7 +490,8 @@ namespace iliwi {
         network.password = preferred_networks.get(network.address).password;
         network.password_in_ascii = preferred_networks.get(network.address).password_in_ascii;
         network.username = preferred_networks.get(network.address).username;
-        network.certificate = preferred_networks.get(network.address).certificate;
+        network.cert = preferred_networks.get(network.address).cert;
+        network.cert_dir = preferred_networks.get(network.address).cert_dir;
       }
       if( connection_suggestion==null )
         connection_suggestion = network;
