@@ -284,11 +284,11 @@ namespace iliwi.View {
       cert_box.pack_end(cert_status);
 
       Box cert_button_box = new Box(win);
-		cert_button_box.horizontal_set(true);
-		cert_button_box.homogenous_set(false);
-		cert_button_box.size_hint_weight_set(1, -1);
-		cert_button_box.size_hint_align_set(-1, -1);
-		cert_button_box.show();
+      cert_button_box.horizontal_set(true);
+      cert_button_box.homogenous_set(false);
+      cert_button_box.size_hint_weight_set(1, -1);
+      cert_button_box.size_hint_align_set(-1, -1);
+      cert_button_box.show();
 
       Button cert_add_button = new Button(win);
       cert_add_button.size_hint_weight_set(1, 1);
@@ -308,8 +308,8 @@ namespace iliwi.View {
       cert_del_button.smart_callback_add("clicked", clear_cert);
       gui_container2 += (owned) cert_del_button;
 
-		cert_box.pack_end(cert_button_box);
-		gui_container2 += (owned) cert_button_box;
+      cert_box.pack_end(cert_button_box);
+      gui_container2 += (owned) cert_button_box;
 
       network_page.pack_end(certificate_container);
       gui_container2 += (owned) cert_box;
@@ -484,8 +484,8 @@ namespace iliwi.View {
     ls.sort();
   }
   private void clear_cert() {
-	 network.cert = "";
-	 network.cert_dir = "";
+    network.cert = "";
+    network.cert_dir = "";
     certlist_label_set();
   }
   
