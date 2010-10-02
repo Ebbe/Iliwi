@@ -98,7 +98,6 @@ namespace iliwi {
     public string essid = "";
     public bool encryption = false;
     public bool authentication = false;
-    public bool server_cert_is_set = false;
     public bool wpa_encryption {get; private set; default=false;}
     public string password = "";
     public string username = "";
