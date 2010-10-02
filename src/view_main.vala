@@ -18,6 +18,8 @@ using Elm;
 using Gee;
 
 namespace iliwi.View {
+  public const string SSL_CERT_DIR = "/etc/ssl/certs/";
+
   Win win;
   Elm.Object[] gui_container;
   Pager pager;
@@ -281,14 +283,33 @@ namespace iliwi.View {
       cert_status.show();
       cert_box.pack_end(cert_status);
 
-      Button cert_button = new Button(win);
-      cert_button.size_hint_weight_set(1,-1);
-      cert_button.size_hint_align_set(-1,-1);
-      cert_button.label_set("Change");
-      cert_button.show();
-      cert_box.pack_end(cert_button);
-      cert_button.smart_callback_add("clicked", show_cert_chooser);
-      gui_container2 += (owned) cert_button;
+      Box cert_button_box = new Box(win);
+		cert_button_box.horizontal_set(true);
+		cert_button_box.homogenous_set(false);
+		cert_button_box.size_hint_weight_set(1, -1);
+		cert_button_box.size_hint_align_set(-1, -1);
+		cert_button_box.show();
+
+      Button cert_add_button = new Button(win);
+      cert_add_button.size_hint_weight_set(1, 1);
+      cert_add_button.size_hint_align_set(-1, -1);
+      cert_add_button.label_set("Select");
+      cert_add_button.show();
+      cert_button_box.pack_end(cert_add_button);
+      cert_add_button.smart_callback_add("clicked", show_cert_chooser);
+      gui_container2 += (owned) cert_add_button;
+
+      Button cert_del_button = new Button(win);
+      cert_del_button.size_hint_weight_set(1, 1);
+      cert_del_button.size_hint_align_set(-1, -1);
+      cert_del_button.label_set("Clear");
+      cert_del_button.show();
+      cert_button_box.pack_end(cert_del_button);
+      cert_del_button.smart_callback_add("clicked", clear_cert);
+      gui_container2 += (owned) cert_del_button;
+
+		cert_box.pack_end(cert_button_box);
+		gui_container2 += (owned) cert_button_box;
 
       network_page.pack_end(certificate_container);
       gui_container2 += (owned) cert_box;
@@ -443,18 +464,17 @@ namespace iliwi.View {
          cert_status.label_set("Not Set - Password recipient unverified!");
       }
   }
-  public void list_cert_dir() {
+  private void list_cert_dir() {
     ls.clear();
-    string path = "/etc/ssl/certs/";
     MatchInfo result;
     try {
       Regex line_regex_cert_name = new Regex("""^(.+?\.pem)$""");
-      var directory = File.new_for_path(path);
+      var directory = File.new_for_path(SSL_CERT_DIR);
       var enumerator = directory.enumerate_children(FILE_ATTRIBUTE_STANDARD_NAME, 0, null);
       FileInfo file_info;
       while ((file_info = enumerator.next_file(null)) != null) {
         if (line_regex_cert_name.match(file_info.get_name(), 0, out result)) {
-          ls.add(new Certificate(result.fetch(1), path));
+          ls.add(new Certificate(result.fetch(1), SSL_CERT_DIR));
         }
       }
     }
@@ -463,7 +483,11 @@ namespace iliwi.View {
     }
     ls.sort();
   }
-
+  private void clear_cert() {
+	 network.cert = "";
+	 network.cert_dir = "";
+    certlist_label_set();
+  }
   
   // Genlist stuff
   private static string genlist_get_label( Elm.Object obj, string part ) {
