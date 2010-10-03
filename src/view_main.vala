@@ -29,12 +29,11 @@ namespace iliwi.View {
   Label cert_status;
   
   Genlist wifilist;
-  Genlist certlist;
   GenlistItemClass itc;
   GenlistItemClass itc2;
   bool items_in_list;
   ArrayList<Certificate> ls;
-  
+
   void show_main_window(string[] args) {
     Elm.init(args);
     
@@ -252,8 +251,8 @@ namespace iliwi.View {
       
       if(!network.authentication) {
         Toggle ascii_hex = new Toggle(win);
-        ascii_hex.label_set( "Password written in");
-        ascii_hex.states_labels_set("Ascii","Hex");
+        ascii_hex.label_set("Password format");
+        ascii_hex.states_labels_set("ASCII","Hex");
         ascii_hex.smart_callback_add("changed", change_network_ascii_hex );
         ascii_hex.state_set(network.password_in_ascii);
         ascii_hex.show();
@@ -392,7 +391,7 @@ namespace iliwi.View {
     cert_chooser_page.homogenous_set(false);
     cert_chooser_page.show();
     
-    certlist = new Genlist(win);
+    Genlist certlist = new Genlist(win);
     certlist.size_hint_weight_set(1, 1);
     certlist.size_hint_align_set(-1, -1);
     list_cert_dir();
@@ -412,6 +411,7 @@ namespace iliwi.View {
     gui_container3 += (owned) back_button;
 
     pager.content_push(cert_chooser_page);
+    gui_container3 += (owned) certlist;
     gui_container3 += (owned) cert_chooser_page;
   }
 
@@ -450,11 +450,13 @@ namespace iliwi.View {
     gui_container2 = {};
     password = null;
     username = null;
+    gui_container3 = {}; //inserted here due to error below in method back_to_net_definition()
   }
   private void back_to_net_definition() {
     certlist_label_set();
     pager.content_pop();
-    gui_container3 = {};
+//  gui_container3 = {}; causes error - see below, moved to method back_to_list()
+//ERR:elementary elm_widget.c:1303 elm_widget_type_check() Passing Object: 0x1ce5e0, of type: '(unknown)' when expecting type: 'genlist'
   }
   private void certlist_label_set() {
       if (network.cert != "") {
