@@ -139,7 +139,7 @@ namespace iliwi.View {
     wifilist.clear();
     items_in_list = false;
     unowned GenlistItem listitem_tmp;
-    unowned GenlistItem listitem_tmp2;
+    GenlistItem listitem_tmp2;
     foreach(Network network in wifi.get_visible_networks()) {
       // Find place (sorted by preferred > strength
       if( items_in_list == false )
