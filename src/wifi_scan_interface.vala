@@ -14,12 +14,11 @@
     along with iliwi.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Wifi wifi;
+namespace WifiScan {
+  public delegate void ScanningDone(Network[] networks);
 
-void main(string[] args) {
-  //wifi = new Wifi();
-
-  View.show_main_window(args);
-  
-  //wifi = null;
+  public interface Interface {
+    public abstract void set_done_callback(ScanningDone _done_callback);
+    public abstract void* run();
+  }
 }
