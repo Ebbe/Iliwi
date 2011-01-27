@@ -17,7 +17,7 @@
 namespace WifiScan {
   public delegate void ScanningDone(Network[] networks);
 
-  public interface Interface {
+  public interface Interface : GLib.Object {
     public abstract void set_done_callback(ScanningDone _done_callback);
     public abstract void* run();
   }
