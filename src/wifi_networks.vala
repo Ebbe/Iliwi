@@ -26,7 +26,6 @@ class Networks : GLib.Object {
   }
   
   public void scan_results(Network[] _networks) {
-    //networks = new HashMap<string,Network>(str_hash,str_equal); // Clear everytime
     foreach( var network in _networks ) {
       if( networks.has_key(network.address) )
         networks.get( network.address ).take_attributes_from(network);

@@ -14,7 +14,6 @@
     along with iliwi.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//using Sqlite;
 
 static class Database {
   static bool initialized = false;
@@ -39,7 +38,7 @@ static class Database {
   }
   
   public static void save_network(int id, string essid, string address, string password) {
-  	critical("NOT IMPLEMENTET");
+  	critical("NOT IMPLEMENTED");
   }
   
   private static void create_db(string db_file) {
