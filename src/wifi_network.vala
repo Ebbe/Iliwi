@@ -32,6 +32,7 @@ public class Network : GLib.Object {
   public int strength = 0;
   public bool unsaved = true;
   private string _password = "";
+  private int database_id = 0;
   public string password {
     get {return _password;}
     set {_password=value; i_changed();}
@@ -74,6 +75,15 @@ public class Network : GLib.Object {
     strength = other_network.strength;
     encryption = other_network.encryption;
     wpa_encryption = other_network.wpa_encryption;
+  }
+  
+  /* This checks database if we already know it */
+  public void check_if_preferred() {
+    string[,]? result = Database.get_network_id_password(address);
+    if( result==null || result[0,0]==null )
+      return;
+    database_id = result[0,0].to_int();
+    _password = result[0,1];
   }
   
   private void i_changed() {

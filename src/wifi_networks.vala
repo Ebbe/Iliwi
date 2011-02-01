@@ -30,8 +30,10 @@ class Networks : GLib.Object {
     foreach( var network in _networks ) {
       if( networks.has_key(network.address) )
         networks.get( network.address ).take_attributes_from(network);
-      else
+      else {
+        network.check_if_preferred();
         networks.set( network.address, network );
+      }
     }
     
     networks_changed();
