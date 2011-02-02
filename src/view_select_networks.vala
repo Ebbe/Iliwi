@@ -49,6 +49,7 @@ namespace View {
         scanbutton.disabled_set( Wifi.g().scanning );
         refresh_gui();
       });
+      scanbutton.disabled_set( Wifi.g().scanning );
       
       itc.item_style = "double_label";
       itc.func.label_get = (GenlistItemLabelGetFunc) get_item_label;
