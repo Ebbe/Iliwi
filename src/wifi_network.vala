@@ -86,7 +86,14 @@ public class Network : GLib.Object {
     _password = result[0,1];
   }
   
+  /* Called when relavant information changed */
   private void i_changed() {
-    debug("esfsef");
+    // Save network
+    if( preferred_network ) {
+      database_id = Database.save_network(database_id, essid, address, _password);
+    } else {
+      Database.remove_network(database_id);
+      database_id = 0;
+    }
   }
 }

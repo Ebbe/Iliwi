@@ -37,8 +37,23 @@ static class Database {
     return query("SELECT id,password FROM networks WHERE address=\"%s\";".printf(address));
   }
   
-  public static void save_network(int id, string essid, string address, string password) {
-  	critical("NOT IMPLEMENTED");
+  public static int save_network(int id, string essid, string address, string password) {
+    initialize();
+  	if(id>0) {
+  	  database.exec("UPDATE networks SET password=\"%s\" WHERE id=%d;".printf(password,id));
+  	  return id;
+  	} else {
+  	  database.exec("""INSERT INTO networks (essid,address,password) VALUES ("%s","%s","%s");
+  	                """.printf(essid,address,password));
+  	  return (int) database.last_insert_rowid();
+  	}
+  }
+  
+  public static void remove_network(int id) {
+    if(id>0) {
+      initialize();
+      database.exec("DELETE FROM networks WHERE id=%d;".printf(id));
+    }
   }
   
   private static void create_db(string db_file) {
@@ -57,7 +72,7 @@ static class Database {
   }
   
   /* This queries the database and returns result as 2d array or null */
-  public static string[,]? query(string sql) {
+  private static string[,]? query(string sql) {
     initialize();
     Sqlite.Statement stmt;
     if( database.prepare_v2 (sql, -1, out stmt, null) != Sqlite.OK ) {
