@@ -11,7 +11,7 @@ bin_PROGRAMS = iliwi
 iliwi_SOURCES = main.vala \
                 view_main.vala view_select_networks.vala view_network.vala \
                 wifi.vala wifi_scan_iwlist.vala wifi_connect_wpa_supplicant.vala \
-                wifi_scan_interface.vala \
+                wifi_scan_interface.vala wifi_connect_interface.vala \
                 wifi_networks.vala wifi_network.vala \
                 database.vala \
                 dbus_interfaces.vala

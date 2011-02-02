@@ -15,13 +15,9 @@
 */
 
 namespace WifiConnect {
-  class WpaSupplicant : GLib.Object {
+  class WpaSupplicant : Interface, GLib.Object {
     Network? network;
-    
-    public WpaSupplicant() {
-      
-    }
-    
+
     public void connect_to(Network _network) {
       disconnect_from_network();
       network = _network;

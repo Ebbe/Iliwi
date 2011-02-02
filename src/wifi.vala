@@ -25,7 +25,7 @@ class Wifi : GLib.Object {
   static Wifi? instance;
   
   WifiScan.Interface scan_instance;
-  WifiConnect.WpaSupplicant connect_instance;
+  WifiConnect.Interface connect_instance;
   Usage fso_usage;
   Networks networks;
   
