@@ -84,6 +84,7 @@ public class Network : GLib.Object {
       return;
     database_id = result[0,0].to_int();
     _password = result[0,1];
+    _preferred_network = true;
   }
   
   /* Called when relavant information changed */
