@@ -16,7 +16,12 @@
 
 namespace WifiConnect {
   class WpaSupplicant : Interface, GLib.Object {
+    private ConnectionDone connection_done;
     Network? network;
+    
+    public void set_connection_done_callback(ConnectionDone _cd) {
+      connection_done = _cd;
+    }
 
     public void connect_to(Network _network) {
       disconnect_from_network();

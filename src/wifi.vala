@@ -51,6 +51,7 @@ class Wifi : GLib.Object {
     scan_instance = new WifiScan.Iwlist();
     scan_instance.set_done_callback(scan_done);
     connect_instance = new WifiConnect.WpaSupplicant();
+    connect_instance.set_connection_done_callback(connected_callback);
     scan();
   }
   
@@ -84,7 +85,7 @@ class Wifi : GLib.Object {
     networks.scan_results(_networks);
   }
   
-  private void connected_callback() {
-    
+  private void connected_callback(bool successful, string? ip) {
+    critical("Not implemented yet");
   }
 }

@@ -15,7 +15,10 @@
 */
 
 namespace WifiConnect {
+  public delegate void ConnectionDone(bool successful, string? ip);
+  
   public interface Interface : GLib.Object {
+    public abstract void set_connection_done_callback(ConnectionDone _cd);
     public abstract void connect_to(Network _network);
     public abstract void disconnect_from_network();
   }
