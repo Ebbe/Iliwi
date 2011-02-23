@@ -38,9 +38,9 @@ namespace WifiConnect {
       stream.puts( "  ssid=\"%s\"\n".printf(network.essid) );
       if( network.encryption )
         if ( network.wpa_encryption && (!network.authentication) ) // WPA-Personal
-          stream.puts("  psk=%s\n".printf(network.password));
+          stream.puts("  psk=%s\n".printf(password));
         else if ( network.wpa_encryption && network.authentication ) { // WPA-Enterprise
-          stream.puts("  password=\"%s\"\n".printf(network.password));
+          stream.puts("  password=%s\n".printf(password));
           stream.puts("  key_mgmt=WPA-EAP\n");
           stream.puts("  pairwise=CCMP TKIP\n");
           stream.puts("  group=CCMP TKIP\n");
@@ -53,7 +53,7 @@ namespace WifiConnect {
         }
         else { // WEP encryption                                                                                                                           
           stream.puts("  key_mgmt=NONE\n");
-          stream.puts("  wep_key0=%s\n".printf(network.password));
+          stream.puts("  wep_key0=%s\n".printf(password));
         }
       else
         stream.puts( "  key_mgmt=NONE\n" ); // No encryption

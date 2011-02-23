@@ -17,6 +17,7 @@
 using Gee;
 
 class Networks : GLib.Object {
+  /* Signal that mostly views should be subscribers to */
   public signal void networks_changed();
   
   HashMap<string,Network> networks;
