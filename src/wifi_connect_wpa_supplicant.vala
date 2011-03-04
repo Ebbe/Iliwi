@@ -62,7 +62,7 @@ namespace WifiConnect {
       stream = null;
       
       try {
-        string[] supplicant_args = {Environment.find_program_in_path("wpa_supplicant"),"-i", "wlan0", "-c", filename,"-B"};
+        string[] supplicant_args = {Environment.find_program_in_path("wpa_supplicant"),"-i", "eth0", "-c", filename,"-B"};
         Process.spawn_sync(null, supplicant_args, null, GLib.SpawnFlags.STDERR_TO_DEV_NULL, null);
       } catch(GLib.SpawnError e) {
         critical("Couldn't start spawn!");
