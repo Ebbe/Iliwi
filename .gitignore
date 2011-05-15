@@ -11,4 +11,10 @@ config.log
 config.status
 .deps
 *.stamp
+INSTALL
+configure
+depcomp
+install-sh
+missing
+Makefile.in
 
