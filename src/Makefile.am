@@ -20,3 +20,5 @@ iliwi_LDFLAGS = $(AM_LIBS)
 
 clean:
 	rm -f *.c *.o *.stamp
+
+MAINTAINERCLEANFILES = Makefile.in
